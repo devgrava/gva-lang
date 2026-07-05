@@ -1,0 +1,18 @@
+{
+  "name": "gva-lang",
+  "version": "0.1.0",
+  "description": "GVA Programming Language",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "dev": "node main.js"
+  },
+  "keywords": [
+    "language",
+    "compiler",
+    "interpreter"
+  ],
+  "author": "Didit Farafat",
+  "license": "MIT"
+}
