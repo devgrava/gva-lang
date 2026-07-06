@@ -4,7 +4,7 @@ import Lexer from "./src/lexer/lexer.js";
 import Parser from "./src/parser/parser.js";
 import Interpreter from "./src/interpreter/interpreter.js";
 
-const source = fs.readFileSync("./examples/test.gva", "utf8");
+const source = fs.readFileSync("./examples/main.gva", "utf8");
 
 // Lexer
 const lexer = new Lexer(source);
@@ -19,6 +19,6 @@ const ast = parser.parse();
 const interpreter = new Interpreter();
 interpreter.execute(ast);
 
-for (const token of tokens) {
-    console.log(token.type, token.value);
-}
+//for (const token of tokens) {
+//    console.log(token.type, token.value);
+//}

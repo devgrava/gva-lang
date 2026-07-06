@@ -1,5 +1,9 @@
-let aktif = true;
-let selesai = false;
+let umur = 20;
 
-print(aktif);
-print(selesai);
+if (umur >= 17) {
+    print("Dewasa");
+} else {
+    print("Anak");
+}
+
+print("Program selesai");

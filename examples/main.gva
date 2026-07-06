@@ -1,0 +1,9 @@
+func halo() {
+    print("Halo GVA");
+}
+
+print("Mulai");
+
+halo();
+
+print("Selesai");

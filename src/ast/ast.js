@@ -49,3 +49,52 @@ export function BooleanLiteral(value) {
         value
     };
 }
+
+export function IfStatement(condition, thenBranch, elseBranch = null) {
+    return {
+        type: "IfStatement",
+        condition,
+        thenBranch,
+        elseBranch
+    };
+}
+
+export function AssignmentStatement(name, value) {
+    return {
+        type: "AssignmentStatement",
+        name,
+        value
+    };
+}
+
+export function WhileStatement(condition, body) {
+    return {
+        type: "WhileStatement",
+        condition,
+        body
+    };
+}
+
+export function FunctionDeclaration(name, params, body) {
+    return {
+        type: "FunctionDeclaration",
+        name,
+        params,
+        body
+    };
+}
+
+export function CallExpression(callee, args) {
+    return {
+        type: "CallExpression",
+        callee,
+        args
+    };
+}
+
+export function ExpressionStatement(expression) {
+    return {
+        type: "ExpressionStatement",
+        expression
+    };
+}

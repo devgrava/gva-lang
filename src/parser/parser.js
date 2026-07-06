@@ -7,7 +7,13 @@ import {
     StringLiteral,
     BooleanLiteral,
     PrintStatement,
-    BinaryExpression
+    BinaryExpression,
+    IfStatement,
+    AssignmentStatement,
+    WhileStatement,
+    FunctionDeclaration,
+    CallExpression,
+    ExpressionStatement
 } from "../ast/ast.js";
 
 export default class Parser {
@@ -65,12 +71,106 @@ export default class Parser {
             case TokenType.PRINT:
                 return this.parsePrintStatement();
 
+            case TokenType.IF:
+                return this.parseIfStatement();
+
+            case TokenType.WHILE:
+                return this.parseWhileStatement();
+
+            case TokenType.FUNC:
+                return this.parseFunctionDeclaration();
+
+            case TokenType.IDENTIFIER:
+
+                if (
+                    this.tokens[this.position + 1] &&
+                    this.tokens[this.position + 1].type === TokenType.ASSIGN
+                ) {
+                    return this.parseAssignmentStatement();
+                }
+
+                const expr = this.parseExpression();
+
+                this.expect(TokenType.SEMICOLON);
+
+                return ExpressionStatement(expr);
+
             default:
                 throw new Error(
                     `Unknown statement: ${this.current().type}`
                 );
         }
 
+    }
+    parseFunctionDeclaration() {
+
+        this.expect(TokenType.FUNC);
+
+        const name =
+            this.expect(TokenType.IDENTIFIER).value;
+
+        this.expect(TokenType.LPAREN);
+
+        const params = [];
+
+        while (
+             this.current().type !== TokenType.RPAREN
+        ) {
+
+             params.push(
+                  this.expect(TokenType.IDENTIFIER).value
+             );
+
+             if (
+                  this.current().type === TokenType.COMMA
+             ) {
+                  this.advance();
+             }
+         }
+
+         this.expect(TokenType.RPAREN);
+
+         const body = this.parseBlock();
+
+         return FunctionDeclaration(
+               name,
+               params,
+               body
+         );
+    }
+
+    parseWhileStatement() {
+
+       this.expect(TokenType.WHILE);
+
+       this.expect(TokenType.LPAREN);
+
+       const condition = this.parseExpression();
+
+       this.expect(TokenType.RPAREN);
+
+       const body = this.parseBlock();
+
+       return WhileStatement(
+           condition,
+           body
+       );
+    }
+
+    parseAssignmentStatement() {
+
+        const name = this.expect(TokenType.IDENTIFIER).value;
+
+        this.expect(TokenType.ASSIGN);
+
+        const value = this.parseExpression();
+
+        this.expect(TokenType.SEMICOLON);
+
+        return AssignmentStatement(
+            name,
+            value
+        );
     }
 
     parseVariableDeclaration() {
@@ -109,8 +209,83 @@ export default class Parser {
         return PrintStatement(argument);
     }
 
+    parseBlock() {
+
+        this.expect(TokenType.LBRACE);
+
+        const body = [];
+
+        while (
+           this.current().type !== TokenType.RBRACE &&
+           this.current().type !== TokenType.EOF
+        ) {
+           body.push(this.parseStatement());
+        }
+
+        this.expect(TokenType.RBRACE);
+
+        return body;
+    }
+
+    parseIfStatement() {
+
+        this.expect(TokenType.IF);
+
+        this.expect(TokenType.LPAREN);
+
+        const condition = this.parseExpression();
+
+        this.expect(TokenType.RPAREN);
+
+        const thenBranch = this.parseBlock();
+
+        let elseBranch = null;
+
+        if (this.current().type === TokenType.ELSE) {
+
+            this.advance();
+
+            elseBranch = this.parseBlock();
+        }
+
+        return IfStatement(
+            condition,
+            thenBranch,
+            elseBranch
+        );
+    }
+
     parseExpression() {
-        return this.parseAddition();
+        return this.parseComparison();
+    }
+
+    parseComparison() {
+
+       let expr = this.parseAddition();
+
+       while (
+           this.current().type === TokenType.EQUAL ||
+           this.current().type === TokenType.NOT_EQUAL ||
+           this.current().type === TokenType.GREATER ||
+           this.current().type === TokenType.LESS ||
+           this.current().type === TokenType.GREATER_EQUAL ||
+           this.current().type === TokenType.LESS_EQUAL
+       ) {
+
+           const operator = this.current().value;
+
+           this.advance();
+
+           const right = this.parseAddition();
+
+           expr = BinaryExpression(
+                expr,
+                operator,
+                right
+           );
+       }
+
+       return expr;
     }
 
     parseAddition() {
@@ -197,14 +372,47 @@ export default class Parser {
                 return BooleanLiteral(false);
 
 
-            case TokenType.IDENTIFIER:
+            case TokenType.IDENTIFIER: {
+
+                const name = token.value;
 
                 this.advance();
 
-                return {
-                    type: "Identifier",
-                    name: token.value
-                };
+                if (this.current().type === TokenType.LPAREN) {
+
+                     this.advance();
+
+                     const args = [];
+
+                while (
+                     this.current().type !== TokenType.RPAREN
+                ) {
+
+                     args.push(
+                         this.parseExpression()
+                     );
+
+                     if (
+                         this.current().type === TokenType.COMMA
+                     ) {
+                         this.advance();
+                     }
+
+                 }
+
+                 this.expect(TokenType.RPAREN);
+
+                 return CallExpression(
+                      name,
+                      args
+                 );
+               }
+
+               return {
+                      type: "Identifier",
+                      name
+               };
+            }
 
             case TokenType.LPAREN:
 
