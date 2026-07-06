@@ -4,6 +4,7 @@ import {
     Program,
     VariableDeclaration,
     NumberLiteral,
+    StringLiteral,
     PrintStatement,
     BinaryExpression
 } from "../ast/ast.js";
@@ -19,16 +20,17 @@ export default class Parser {
         return this.tokens[this.position];
     }
 
-    peek() {
-        return this.tokens[this.position + 1];
-    }
-
     advance() {
         this.position++;
     }
 
     expect(type) {
+
         const token = this.current();
+
+        if (!token) {
+            throw new Error(`Expected ${type}, tetapi mencapai EOF.`);
+        }
 
         if (token.type !== type) {
             throw new Error(
@@ -37,10 +39,12 @@ export default class Parser {
         }
 
         this.advance();
+
         return token;
     }
 
     parse() {
+
         const body = [];
 
         while (this.current().type !== TokenType.EOF) {
@@ -51,29 +55,34 @@ export default class Parser {
     }
 
     parseStatement() {
-        const token = this.current();
 
-        if (token.type === TokenType.LET) {
-            return this.parseVariableDeclaration();
-        }
-        if (token.type === TokenType.PRINT) {
-            return this.parsePrintStatement();
+        switch (this.current().type) {
+
+            case TokenType.LET:
+                return this.parseVariableDeclaration();
+
+            case TokenType.PRINT:
+                return this.parsePrintStatement();
+
+            default:
+                throw new Error(
+                    `Unknown statement: ${this.current().type}`
+                );
         }
 
-        throw new Error(
-            `Unknown statement: ${token.type}`
-        );
     }
 
     parseVariableDeclaration() {
 
         this.expect(TokenType.LET);
 
-        const name = this.expect(TokenType.IDENTIFIER).value;
+        const name =
+            this.expect(TokenType.IDENTIFIER).value;
 
         this.expect(TokenType.ASSIGN);
 
-        const value = this.parseExpression();
+        const value =
+            this.parseExpression();
 
         this.expect(TokenType.SEMICOLON);
 
@@ -82,139 +91,129 @@ export default class Parser {
             value
         );
     }
-    parseExpression() {
-       return this.parseBinaryExpression();
-    }/*
-    parseExpression() {
-
-        const token = this.current();
-
-        // Number
-        if (token.type === TokenType.NUMBER) {
-             this.advance();
-             return NumberLiteral(token.value);
-        }
-
-        // Identifier
-        if (token.type === TokenType.IDENTIFIER) {
-             this.advance();
-
-             return {
-                 type: "Identifier",
-                 name: token.value
-             };
-        }
-
-        throw new Error(
-            `Unknown expression: ${token.type}`
-        );
-
-        return this.parseBinaryExpression();
-    }*/
 
     parsePrintStatement() {
 
-       this.expect(TokenType.PRINT);
-       this.expect(TokenType.LPAREN);
-       const argument = this.parseExpression();
-       this.expect(TokenType.RPAREN);
-       this.expect(TokenType.SEMICOLON);
+        this.expect(TokenType.PRINT);
 
-       return PrintStatement(argument);
-    }/*
-    parsePrimary() {
+        this.expect(TokenType.LPAREN);
 
-        const token = this.current();
+        const argument =
+            this.parseExpression();
 
-        if (token.type === TokenType.NUMBER) {
-            this.advance();
-            return NumberLiteral(token.value);
-        }
+        this.expect(TokenType.RPAREN);
 
-        if (token.type === TokenType.IDENTIFIER) {
-            this.advance();
-            return {
-                type: "Identifier",
-                name: token.value
-            };
-        }
+        this.expect(TokenType.SEMICOLON);
 
-        throw new Error(
-            `Unknown expression: ${token.type}`
-        );
-     }
-     
-     parseBinaryExpression() {
+        return PrintStatement(argument);
+    }
 
-         let left = this.parsePrimary();
+    parseExpression() {
+        return this.parseAddition();
+    }
 
-         while (
+    parseAddition() {
+
+        let expr = this.parseMultiplication();
+
+        while (
              this.current().type === TokenType.PLUS ||
              this.current().type === TokenType.MINUS
-         ) {
+        ) {
+
              const operator = this.current().value;
+
              this.advance();
 
-             const right = this.parsePrimary();
+             const right = this.parseMultiplication();
 
-             left = BinaryExpression(left, operator, right);
+             expr = BinaryExpression(
+                  expr,
+                  operator,
+                  right
+             );
+
+        }
+
+        return expr;
+    }
+
+    parseMultiplication() {
+
+        let expr = this.parsePrimary();
+
+        while (
+            this.current().type === TokenType.MULTIPLY ||
+            this.current().type === TokenType.DIVIDE ||
+            this.current().type === TokenType.MODULO
+        ) {
+
+            const operator = this.current().value;
+
+            this.advance();
+
+            const right = this.parsePrimary();
+
+             expr = BinaryExpression(
+                 expr,
+                 operator,
+                 right
+             );
+
          }
 
-         return left;
-     }*/
-     parseBinaryExpression() {
-
-    let left = this.parsePrimary();
-
-    while (
-        this.current() &&
-        (
-            this.current().type === TokenType.PLUS ||
-            this.current().type === TokenType.MINUS
-        )
-    ) {
-        const operator = this.current().value;
-        this.advance();
-
-        const right = this.parsePrimary();
-
-        left = {
-            type: "BinaryExpression",
-            left,
-            operator,
-            right
-        };
+         return expr;
     }
 
-    return left;
-}
     parsePrimary() {
 
-    const token = this.current();
+         const token = this.current();
 
-    if (!token) {
-        throw new Error("Unexpected end of input");
-    }
+         switch (token.type) {
 
-    if (token.type === TokenType.NUMBER) {
-        this.advance();
-        return {
-            type: "NumberLiteral",
-            value: token.value
-        };
-    }
+            case TokenType.NUMBER:
 
-    if (token.type === TokenType.IDENTIFIER) {
-        this.advance();
-        return {
-            type: "Identifier",
-            name: token.value
-        };
-    }
+                this.advance();
 
-    throw new Error(
-        `Unknown expression: ${token.type}`
-    );
+                return NumberLiteral(
+                    token.value
+                );
+
+            case TokenType.STRING:
+
+                this.advance();
+
+                return StringLiteral(
+                    token.value
+                );
+
+
+            case TokenType.IDENTIFIER:
+
+                this.advance();
+
+                return {
+                    type: "Identifier",
+                    name: token.value
+                };
+
+            case TokenType.LPAREN:
+
+                this.advance();
+
+                const expr = this.parseExpression();
+
+                this.expect(TokenType.RPAREN);
+
+                return expr;
+
+            default:
+
+                throw new Error(
+                    `Unexpected token ${token.type}`
+                );
+         }
+
     }
 
 }
