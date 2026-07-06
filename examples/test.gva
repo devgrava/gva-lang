@@ -1,3 +1,4 @@
-// test sederhana
-let x = 10;
-print(x + 5);
+print("Halo Dunia");
+let nama = "Didit";
+
+print(nama);

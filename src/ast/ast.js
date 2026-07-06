@@ -35,3 +35,10 @@ export function BinaryExpression(left, operator, right) {
         right
     };
 }
+
+export function StringLiteral(value) {
+    return {
+        type: "StringLiteral",
+        value
+    };
+}

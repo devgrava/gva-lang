@@ -44,12 +44,15 @@ export default class Interpreter {
         }
 
     }
-
+    //
     evaluate(expr) {
 
         switch (expr.type) {
 
             case "NumberLiteral":
+                return expr.value;
+
+            case "StringLiteral":
                 return expr.value;
 
             case "Identifier":
@@ -63,15 +66,24 @@ export default class Interpreter {
                 switch (expr.operator) {
 
                     case "+":
-                        return left + right;
+                       return left + right;
 
                     case "-":
-                        return left - right;
+                       return left - right;
+
+                    case "*":
+                       return left * right;
+
+                    case "/":
+                       return left / right;
+
+                    case "%":
+                       return left % right;
 
                     default:
-                        throw new Error(
-                            "Operator belum didukung"
-                        );
+                       throw new Error(
+                           `Operator '${expr.operator}' belum didukung`
+                       );
                 }
 
             default:
