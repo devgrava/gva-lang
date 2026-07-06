@@ -1,158 +1,102 @@
-import TokenType from "../token/tokenType.js";
+import Scanner from "./scanner.js";
+
 import Token from "../token/token.js";
+import TokenType from "../token/tokenType.js";
+
+import readIdentifier from "./reader/identifierReader.js";
+import readNumber from "./reader/numberReader.js";
+import readString from "./reader/stringReader.js";
+import readOperator from "./reader/operatorReader.js";
+
+import {
+    skipSingleLineComment,
+    skipMultiLineComment
+} from "./reader/commentReader.js";
+
+import {
+    isLetter,
+    isDigit
+} from "./utils.js";
 
 export default class Lexer {
-  constructor(source) {
-    this.source = source;
-    this.position = 0;
-    this.line = 1;
-    this.column = 1;
-  }
 
-  current() {
-    if (this.position >= this.source.length) {
-      return null;
-    }
-    return this.source[this.position];
-  }
-
-  advance() {
-    const ch = this.current();
-
-    this.position++;
-
-    if (ch === "\n") {
-      this.line++;
-      this.column = 1;
-    } else {
-      this.column++;
-    }
-  }
-
-  skipWhitespace() {
-    while (this.current() && /\s/.test(this.current())) {
-      this.advance();
-    }
-  }
-
-  readIdentifier() {
-    const startLine = this.line;
-    const startColumn = this.column;
-
-    let value = "";
-
-    while (this.current() && /[a-zA-Z_]/.test(this.current())) {
-      value += this.current();
-      this.advance();
+    constructor(source) {
+        this.scanner = new Scanner(source);
     }
 
-    const keywords = {
-      let: TokenType.LET,
-      print: TokenType.PRINT,
-      true: TokenType.BOOLEAN,
-      false: TokenType.BOOLEAN
-    };
+    tokenize() {
 
-    const type = keywords[value] || TokenType.IDENTIFIER;
+        const tokens = [];
 
-    return new Token(type, value, startLine, startColumn);
-  }
+        while (!this.scanner.eof()) {
 
-  readNumber() {
-    const startLine = this.line;
-    const startColumn = this.column;
+            this.scanner.skipWhitespace();
 
-    let value = "";
+            if (this.scanner.eof()) {
+                break;
+            }
 
-    while (this.current() && /[0-9]/.test(this.current())) {
-      value += this.current();
-      this.advance();
-    }
+            const ch = this.scanner.current();
+            const next = this.scanner.peek();
 
-    return new Token(
-      TokenType.NUMBER,
-      Number(value),
-      startLine,
-      startColumn
-    );
-  }
+            // Identifier / Keyword
 
-  readString() {
-    const startLine = this.line;
-    const startColumn = this.column;
+            if (isLetter(ch)) {
+                tokens.push(
+                    readIdentifier(this.scanner)
+                );
+                continue;
+            }
 
-    this.advance();
+            // Number
 
-    let value = "";
+            if (isDigit(ch)) {
+                tokens.push(
+                    readNumber(this.scanner)
+                );
+                continue;
+            }
 
-    while (this.current() && this.current() !== '"') {
-      value += this.current();
-      this.advance();
-    }
+            // String
 
-    this.advance();
+            if (ch === '"') {
+                tokens.push(
+                    readString(this.scanner)
+                );
+                continue;
+            }
 
-    return new Token(
-      TokenType.STRING,
-      value,
-      startLine,
-      startColumn
-    );
-  }
+            // Single line comment
 
-  tokenize() {
-    const tokens = [];
+            if (ch === "/" && next === "/") {
+                skipSingleLineComment(this.scanner);
+                continue;
+            }
 
-    while (this.current() !== null) {
-      this.skipWhitespace();
+            // Multi line comment
 
-      if (this.current() === null) {
-        break;
-      }
+            if (ch === "/" && next === "*") {
+                skipMultiLineComment(this.scanner);
+                continue;
+            }
 
-      if (/[a-zA-Z_]/.test(this.current())) {
-        tokens.push(this.readIdentifier());
-        continue;
-      }
+            // Operator
 
-      if (/[0-9]/.test(this.current())) {
-        tokens.push(this.readNumber());
-        continue;
-      }
+            tokens.push(
+                readOperator(this.scanner)
+            );
+        }
 
-      if (this.current() === '"') {
-        tokens.push(this.readString());
-        continue;
-      }
-
-      if (this.current() === "=") {
         tokens.push(
-          new Token(
-            TokenType.ASSIGN,
-            "=",
-            this.line,
-            this.column
-          )
+            new Token(
+                TokenType.EOF,
+                "",
+                this.scanner.line,
+                this.scanner.column
+            )
         );
 
-        this.advance();
-        continue;
-      }
-
-      throw new Error(
-        `Karakter tidak dikenal: ${this.current()}`
-      );
+        return tokens;
     }
 
-    tokens.push(
-      new Token(
-        TokenType.EOF,
-        "",
-        this.line,
-        this.column
-      )
-    );
-
-    return tokens;
-  }
 }

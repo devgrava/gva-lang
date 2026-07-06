@@ -1,13 +1,19 @@
+import fs from "fs";
+
 import Lexer from "./src/lexer/lexer.js";
+import Parser from "./src/parser/parser.js";
+import Interpreter from "./src/interpreter/interpreter.js";
 
-const source = `
-let nama = "Didit"
-`;
+const source = fs.readFileSync("./examples/test.gva", "utf8");
 
+// Lexer
 const lexer = new Lexer(source);
-
 const tokens = lexer.tokenize();
 
-for (const token of tokens) {
-  console.log(token.toString());
-}
+// Parser
+const parser = new Parser(tokens);
+const ast = parser.parse();
+
+// Interpreter
+const interpreter = new Interpreter();
+interpreter.execute(ast);

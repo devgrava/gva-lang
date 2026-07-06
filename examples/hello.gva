@@ -1,0 +1,6 @@
+// Program pertama
+
+let nama = "Didit";
+let umur = 30;
+
+print(nama);

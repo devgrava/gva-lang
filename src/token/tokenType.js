@@ -1,5 +1,6 @@
 const TokenType = Object.freeze({
 
+
   // Special
   EOF: "EOF",
   ILLEGAL: "ILLEGAL",
@@ -43,7 +44,17 @@ const TokenType = Object.freeze({
   LBRACE: "{",
   RBRACE: "}",
   COMMA: ",",
-  SEMICOLON: ";"
+  SEMICOLON: ";",
+
+  //
+  AND: "AND",
+  OR: "OR",
+  NOT: "NOT",
+  MODULO: "MODULO",
+  LBRACKET: "[",
+  RBRACKET: "]",
+  DOT: ".",
+  COLON: ":"
 
 });
 
