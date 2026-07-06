@@ -42,3 +42,10 @@ export function StringLiteral(value) {
         value
     };
 }
+
+export function BooleanLiteral(value) {
+    return {
+        type: "BooleanLiteral",
+        value
+    };
+}

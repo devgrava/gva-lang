@@ -10,6 +10,7 @@ const source = fs.readFileSync("./examples/test.gva", "utf8");
 const lexer = new Lexer(source);
 const tokens = lexer.tokenize();
 
+
 // Parser
 const parser = new Parser(tokens);
 const ast = parser.parse();
@@ -17,3 +18,7 @@ const ast = parser.parse();
 // Interpreter
 const interpreter = new Interpreter();
 interpreter.execute(ast);
+
+for (const token of tokens) {
+    console.log(token.type, token.value);
+}

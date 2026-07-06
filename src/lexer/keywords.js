@@ -9,9 +9,9 @@ const keywords = new Map([
   ["while", TokenType.WHILE],
   ["for", TokenType.FOR],
   ["print", TokenType.PRINT],
-  ["true", TokenType.BOOLEAN],
-  ["false", TokenType.BOOLEAN],
-  ["null", TokenType.IDENTIFIER]
+  ["true", TokenType.TRUE],
+  ["false", TokenType.FALSE],
+  ["null", TokenType.NULL]
 ]);
 
 export default keywords;

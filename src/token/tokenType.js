@@ -13,6 +13,10 @@ const TokenType = Object.freeze({
   STRING: "STRING",
   BOOLEAN: "BOOLEAN",
 
+  TRUE: "TRUE",
+  FALSE: "FALSE",
+  NULL: "NULL",
+
   // Keywords
   LET: "LET",
   FUNC: "FUNC",

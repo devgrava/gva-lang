@@ -5,6 +5,7 @@ import {
     VariableDeclaration,
     NumberLiteral,
     StringLiteral,
+    BooleanLiteral,
     PrintStatement,
     BinaryExpression
 } from "../ast/ast.js";
@@ -186,6 +187,14 @@ export default class Parser {
                 return StringLiteral(
                     token.value
                 );
+            case TokenType.TRUE:
+
+                this.advance();
+                return BooleanLiteral(true);
+
+            case TokenType.FALSE:
+                this.advance();
+                return BooleanLiteral(false);
 
 
             case TokenType.IDENTIFIER:

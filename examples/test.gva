@@ -1,4 +1,5 @@
-print("Halo Dunia");
-let nama = "Didit";
+let aktif = true;
+let selesai = false;
 
-print(nama);
+print(aktif);
+print(selesai);

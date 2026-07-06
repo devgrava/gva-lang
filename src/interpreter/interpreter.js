@@ -55,6 +55,9 @@ export default class Interpreter {
             case "StringLiteral":
                 return expr.value;
 
+            case "BooleanLiteral":
+                return expr.value;
+
             case "Identifier":
                 return this.env.get(expr.name);
 
